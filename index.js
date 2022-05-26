@@ -38,6 +38,7 @@ async function run() {
     await client.connect();
     const itemCollection = client.db('circuit_city').collection('items');
     const userCollection = client.db('circuit_city').collection('users');
+    const orderCollection = client.db('circuit_city').collection('orders');
 
     app.get('/item', async (req, res) => {
       const query = {};
@@ -46,12 +47,21 @@ async function run() {
       res.send(items);
     });
 
+    app.post('/orders', async(req, res)=>{
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    })
+
+
+
     app.get('/user', verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
 
-    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+
+    app.put('/user/admin/:email', async (req, res) => {
       const email = req.params.email;
       const requester = req.decoded.email;
       const requesterAccount = await userCollection.findOne({ email: requester });
@@ -63,12 +73,11 @@ async function run() {
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result);
       }
-      else {
-        res.status(403).send({ message: 'forbidden' });
+      else{
+        res.status(403).send({message: 'forbidden'});
       }
 
-    })
-
+    });
 
 
 

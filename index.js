@@ -47,7 +47,23 @@ async function run() {
       res.send(items);
     });
 
-    app.post('/orders', async(req, res)=>{
+    app.get('/order', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const query = { email: email }
+        const order = await orderCollection.find(query).toArray();
+        return res.send(order);
+      } else {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+
+
+    })
+
+
+
+    app.post('/orders', async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
       res.send(result);
@@ -61,21 +77,38 @@ async function run() {
     });
 
 
-    app.put('/user/admin/:email', async (req, res) => {
+    app.get('/admin/:email', async(req, res) =>{
+      const email = req.params.email;
+      const user = await userCollection.findOne({email: email});
+      const isAdmin = user.role === 'admin';
+      res.send({admin: isAdmin})
+    })
+
+
+
+
+
+
+
+    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
       const requester = req.decoded.email;
       const requesterAccount = await userCollection.findOne({ email: requester });
       if (requesterAccount.role === 'admin') {
+
         const filter = { email: email };
         const updateDoc = {
           $set: { role: 'admin' },
         };
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result);
+
       }
-      else{
-        res.status(403).send({message: 'forbidden'});
+
+      else {
+        res.status(403).send({ message: 'forbidden' });
       }
+
 
     });
 
@@ -95,7 +128,7 @@ async function run() {
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
       res.send({ result, token });
 
-    })
+    });
 
 
 

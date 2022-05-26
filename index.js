@@ -41,6 +41,8 @@ async function run() {
     const orderCollection = client.db('circuit_city').collection('orders');
     const reviewCollection = client.db('circuit_city').collection('reviews');
 
+
+
     app.get('/item', async (req, res) => {
       const query = {};
       const cursor = itemCollection.find(query);
@@ -80,7 +82,7 @@ async function run() {
 
 
 
-    app.post('/orders', async (req, res) => {
+    app.post('/orders',verifyJWT, async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
       res.send(result);

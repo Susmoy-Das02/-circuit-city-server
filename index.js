@@ -39,13 +39,30 @@ async function run() {
     const itemCollection = client.db('circuit_city').collection('items');
     const userCollection = client.db('circuit_city').collection('users');
     const orderCollection = client.db('circuit_city').collection('orders');
+    const reviewCollection = client.db('circuit_city').collection('reviews');
 
     app.get('/item', async (req, res) => {
       const query = {};
       const cursor = itemCollection.find(query);
-      const items = await cursor.toArray();
+      const items = await cursor.limit(6).toArray();
       res.send(items);
     });
+
+    app.post('/item', async (req, res) => {
+      console.log(req.body)
+      const newItem = req.body;
+      const result = await itemCollection.insertOne(newItem);
+      res.send(result);
+  });
+
+
+  app.post('/review', async (req, res) => {
+    console.log(req.body)
+    const newReview = req.body;
+    const result = await reviewCollection.insertOne(newReview);
+    res.send(result);
+});
+
 
     app.get('/order', verifyJWT, async (req, res) => {
       const email = req.query.email;
